@@ -14,41 +14,28 @@ public class GameBoard : MonoBehaviour
     public int height = 4;
     private int stepX = 0;
     private int stepY = 0;
+    private UnityEngine.Color defaultColor = new UnityEngine.Color(231f / 255, 208f / 255, 151f / 255, 1f);
+    // TODO: map of number-to-color
+    private UnityEngine.Color activeColor = new UnityEngine.Color(195f / 255, 30f / 255, 167f / 255, 1f);
 
     public GameBoardTile[,] BoardPieces { get; private set; }
-    public ActiveTile[,] ActiveTiles { get; private set; }
-    private Point[, ] boardMask;
 
     // Start is called before the first frame update
     void Start()
     {
         Instantiate(background);
-        // TODO: change it to be just an image and use only active tiles
         BoardPieces = new GameBoardTile[width, height];
-        boardMask = new Point[width, height];
-
-        for (int x = 0; x < width; ++x)
-        {
-            for (int y = 0; y < height; ++y)
-            {
-                BoardPieces[x, y] = generator.GenerateTile(x, y);
-                boardMask[x, y] = new Point(-1, -1);
-            }
-        }
-
-        ActiveTiles = new ActiveTile[width, height];
 
         for (int x = 0; x < width; ++x)
         {
             for (int y = 0; y < height; ++y)
             {
                 bool revealed = (x == 0 && y == 0);
-                //Debug.Log(revealed);
-                ActiveTiles[x, y] = generator.GenerateActiveTile(x, y, revealed);
+                BoardPieces[x, y] = generator.GenerateTile(x, y, revealed);
+                
                 if (revealed)
                 {
-                    boardMask[x, y].X = x;
-                    boardMask[x, y].Y = y;
+                    BoardPieces[x, y].SetColor(activeColor);
                 }
             }
         }
@@ -90,11 +77,13 @@ public class GameBoard : MonoBehaviour
          Returns new tile's position - the farthest available in given direction
          */
 
+        //TODO: step in possible direction one-by-one ?
+
         bool positionHasChanged = true;
-        Vector3 desiredPosition = ActiveTiles[x, y].transform.position;
-        Vector3 delta = new Vector3(stepX * (int)Math.Round(ActiveTiles[x, y].transform.localScale.x),
-                        stepY * (int)Math.Round(ActiveTiles[x, y].transform.localScale.y), 0);
-        Vector3 prevDesiredPosition = ActiveTiles[x, y].transform.position;
+        Vector3 desiredPosition = BoardPieces[x, y].transform.position;
+        Vector3 delta = new Vector3(stepX * (int)Math.Round(BoardPieces[x, y].transform.localScale.x),
+                        stepY * (int)Math.Round(BoardPieces[x, y].transform.localScale.y), 0);
+        Vector3 prevDesiredPosition = BoardPieces[x, y].transform.position;
 
         while (positionHasChanged)
         {
@@ -124,20 +113,16 @@ public class GameBoard : MonoBehaviour
         {
             for (int y = 0; y < height; ++y)
             {
-                if (ActiveTiles[x, y].revealed)
+                if (BoardPieces[x, y].revealed)
                 {
-
                     Vector3 desiredPosition = NewTilePosition(x, y);
-                    if (boardMask[(int)(desiredPosition.x), (int)(desiredPosition.y)].X == -1 && 
-                        boardMask[(int)(desiredPosition.x), (int)(desiredPosition.y)].Y == -1)
+
+                    if (!BoardPieces[(int)(desiredPosition.x), (int)(desiredPosition.y)].revealed)
                     {
-                        boardMask[(int)(ActiveTiles[x, y].transform.position.x),
-                                  (int)(ActiveTiles[x, y].transform.position.y)].X = -1;
-                        boardMask[(int)(ActiveTiles[x, y].transform.position.x),
-                                  (int)(ActiveTiles[x, y].transform.position.y)].Y = -1;
-                        ActiveTiles[x, y].transform.position = desiredPosition;
-                        boardMask[(int)(desiredPosition.x), (int)(desiredPosition.y)].X = x;
-                        boardMask[(int)(desiredPosition.x), (int)(desiredPosition.y)].Y = y;
+                        BoardPieces[x, y].revealed = false;
+                        BoardPieces[x, y].SetColor(defaultColor);
+                        BoardPieces[(int)(desiredPosition.x), (int)(desiredPosition.y)].SetColor(activeColor);
+                        BoardPieces[(int)(desiredPosition.x), (int)(desiredPosition.y)].revealed = true;
                     }
                 }
             }

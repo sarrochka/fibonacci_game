@@ -6,6 +6,7 @@ public class GameBoardTile : MonoBehaviour
 {
     public int x;
     public int y;
+    public bool revealed;
 
     // Start is called before the first frame update
     void Start()
@@ -17,5 +18,12 @@ public class GameBoardTile : MonoBehaviour
     void Update()
     {
         
+    }
+
+    public void SetColor(Color newColor)
+    {
+
+        var sprite = GetComponent<SpriteRenderer>();
+        sprite.color = newColor;
     }
 }
