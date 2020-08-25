@@ -83,6 +83,37 @@ public class GameBoard : MonoBehaviour
         }
     }
 
+
+    private Vector3 NewTilePosition(int x, int y)
+    {
+        /*
+         Returns new tile's position - the farthest available in given direction
+         */
+
+        bool positionHasChanged = true;
+        Vector3 desiredPosition = ActiveTiles[x, y].transform.position;
+        Vector3 delta = new Vector3(stepX * (int)Math.Round(ActiveTiles[x, y].transform.localScale.x),
+                        stepY * (int)Math.Round(ActiveTiles[x, y].transform.localScale.y), 0);
+        Vector3 prevDesiredPosition = ActiveTiles[x, y].transform.position;
+
+        while (positionHasChanged)
+        {
+            prevDesiredPosition = desiredPosition;
+            desiredPosition += delta;
+            desiredPosition.x = Math.Max(desiredPosition.x, 0);
+            desiredPosition.x = Math.Min(desiredPosition.x, width - 1);
+            desiredPosition.y = Math.Max(desiredPosition.y, 0);
+            desiredPosition.y = Math.Min(desiredPosition.y, height - 1);
+
+            if (prevDesiredPosition == desiredPosition)
+            {
+                break;
+            }
+        }
+        
+
+        return desiredPosition;
+    } 
     // Update is called once per frame
     void Update()
     {
@@ -95,14 +126,8 @@ public class GameBoard : MonoBehaviour
             {
                 if (ActiveTiles[x, y].revealed)
                 {
-                    Vector3 desiredPosition = ActiveTiles[x, y].transform.position 
-                        + new Vector3(stepX * (int)Math.Round(ActiveTiles[x, y].transform.localScale.x),
-                        stepY * (int)Math.Round(ActiveTiles[x, y].transform.localScale.y), 0);
-                    desiredPosition.x = Math.Max(desiredPosition.x, 0);
-                    desiredPosition.x = Math.Min(desiredPosition.x, width - 1);
-                    desiredPosition.y = Math.Max(desiredPosition.y, 0);
-                    desiredPosition.y = Math.Min(desiredPosition.y, height - 1);
 
+                    Vector3 desiredPosition = NewTilePosition(x, y);
                     if (boardMask[(int)(desiredPosition.x), (int)(desiredPosition.y)].X == -1 && 
                         boardMask[(int)(desiredPosition.x), (int)(desiredPosition.y)].Y == -1)
                     {
@@ -119,5 +144,4 @@ public class GameBoard : MonoBehaviour
         }
 
     }
-
 }
